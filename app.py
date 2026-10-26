@@ -5,15 +5,31 @@ from PIL import Image
 st.set_page_config(page_title="Profe de Mates IA", page_icon="✏️")
 st.title("✏️ Profe de Mates IA")
 
-# 1. Obtener la API Key desde los Secrets de Streamlit
 api_key = st.secrets.get("GEMINI_API_KEY")
 
 if not api_key:
     st.error("⚠️ No se encontró GEMINI_API_KEY en los Secrets de Streamlit.")
     st.stop()
 
-# 2. Inicializar cliente de Google GenAI
 client = genai.Client(api_key=api_key)
+
+# Función para intentar generar contenido probando modelos de respaldo si uno falla
+def generar_con_respaldo(contents):
+    modelos = ['gemini-2.5-flash', 'gemini-1.5-flash']
+    ultimo_error = None
+    
+    for mod in modelos:
+        try:
+            response = client.models.generate_content(
+                model=mod,
+                contents=contents
+            )
+            return response.text
+        except Exception as e:
+            ultimo_error = e
+            continue
+            
+    raise ultimo_error
 
 tab1, tab2 = st.tabs(["📝 Generador de Problemas", "📷 Revisor de Divisiones"])
 
@@ -26,13 +42,10 @@ with tab1:
         prompt = f"Escribe un problema matemático para {grado} usando el tema {tema}. Dame el problema y la solución al final."
         with st.spinner("Creando problema..."):
             try:
-                response = client.models.generate_content(
-                    model='gemini-3.8-flash',
-                    contents=prompt
-                )
-                st.write(response.text)
+                resultado = generar_con_respaldo(prompt)
+                st.write(resultado)
             except Exception as e:
-                st.error(f"Error al generar con la IA: {e}")
+                st.error(f"El servicio está congestionado momentáneamente. Por favor reintenta en unos segundos. Detalle: {e}")
 
 with tab2:
     st.header("Revisar División con Foto")
@@ -46,10 +59,7 @@ with tab2:
             prompt_vision = "Eres un maestro amigable. Revisa la división de la imagen. Dime si está correcta o en qué paso exacto se equivocó el niño."
             with st.spinner("Analizando foto..."):
                 try:
-                    response = client.models.generate_content(
-                        model='gemini-3.8-flash',
-                        contents=[imagen, prompt_vision]
-                    )
-                    st.write(response.text)
+                    resultado = generar_con_respaldo([imagen, prompt_vision])
+                    st.write(resultado)
                 except Exception as e:
-                    st.error(f"Error al analizar imagen: {e}")
+                    st.error(f"El servicio está congestionado momentáneamente. Por favor reintenta en unos segundos. Detalle: {e}")
