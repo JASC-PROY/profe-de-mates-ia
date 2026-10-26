@@ -1,5 +1,5 @@
 import streamlit as st
-import google.generativeai as genai
+from google import genai
 from PIL import Image
 
 st.set_page_config(page_title="Profe de Mates IA", page_icon="✏️")
@@ -11,8 +11,8 @@ if not api_key:
     st.warning("⚠️ Configura la clave GEMINI_API_KEY en los secretos de Streamlit para comenzar.")
     st.stop()
 
-genai.configure(api_key=api_key)
-model = genai.GenerativeModel('gemini-2.5-flash')
+# Cliente moderno de Gemini API
+client = genai.Client(api_key=api_key)
 
 tab1, tab2 = st.tabs(["📝 Generador de Problemas", "📷 Revisor de Divisiones"])
 
@@ -24,8 +24,11 @@ with tab1:
     if st.button("Generar problema"):
         prompt = f"Escribe un problema matemático para {grado} usando el tema {tema}. Dame el problema y la solución al final."
         with st.spinner("Creando problema..."):
-            res = model.generate_content(prompt)
-            st.write(res.text)
+            response = client.models.generate_content(
+                model='gemini-2.5-flash',
+                contents=prompt
+            )
+            st.write(response.text)
 
 with tab2:
     st.header("Revisar División con Foto")
@@ -38,5 +41,8 @@ with tab2:
         if st.button("Revisar procedimiento"):
             prompt_vision = "Eres un maestro amigable. Revisa la división de la imagen. Dime si está correcta o en qué paso exacto se equivocó el niño."
             with st.spinner("Analizando foto..."):
-                res = model.generate_content([prompt_vision, imagen])
-                st.write(res.text)
+                response = client.models.generate_content(
+                    model='gemini-2.5-flash',
+                    contents=[imagen, prompt_vision]
+                )
+                st.write(response.text)
