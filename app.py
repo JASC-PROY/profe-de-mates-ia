@@ -14,9 +14,9 @@ if not api_key:
 
 client = genai.Client(api_key=api_key)
 
-# Lista de modelos compatibles para probar en orden
+# Lista con los modelos de la generación 3.5
 def generar_con_respaldo(contents):
-    modelos = ['gemini-2.0-flash', 'gemini-1.5-flash-8b', 'gemini-2.0-flash-lite']
+    modelos = ['gemini-3.5-flash-lite', 'gemini-3.5-flash']
     ultimo_error = None
     
     for mod in modelos:
