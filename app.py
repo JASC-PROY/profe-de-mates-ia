@@ -27,7 +27,7 @@ with tab1:
         with st.spinner("Creando problema..."):
             try:
                 response = client.models.generate_content(
-                    model='gemini-2.5-flash',
+                    model='gemini-3.8-flash',
                     contents=prompt
                 )
                 st.write(response.text)
@@ -47,7 +47,7 @@ with tab2:
             with st.spinner("Analizando foto..."):
                 try:
                     response = client.models.generate_content(
-                        model='gemini-2.5-flash',
+                        model='gemini-3.8-flash',
                         contents=[imagen, prompt_vision]
                     )
                     st.write(response.text)
