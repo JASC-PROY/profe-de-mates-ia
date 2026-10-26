@@ -1,5 +1,6 @@
 import streamlit as st
 from google import genai
+from google.genai.errors import APIError
 from PIL import Image
 
 st.set_page_config(page_title="Profe de Mates IA", page_icon="✏️")
@@ -13,9 +14,9 @@ if not api_key:
 
 client = genai.Client(api_key=api_key)
 
-# Función para intentar generar contenido probando modelos de respaldo si uno falla
+# Lista de modelos compatibles para probar en orden
 def generar_con_respaldo(contents):
-    modelos = ['gemini-2.5-flash', 'gemini-1.5-flash']
+    modelos = ['gemini-2.0-flash', 'gemini-1.5-flash-8b', 'gemini-2.0-flash-lite']
     ultimo_error = None
     
     for mod in modelos:
@@ -25,6 +26,9 @@ def generar_con_respaldo(contents):
                 contents=contents
             )
             return response.text
+        except APIError as e:
+            ultimo_error = e
+            continue
         except Exception as e:
             ultimo_error = e
             continue
@@ -45,7 +49,7 @@ with tab1:
                 resultado = generar_con_respaldo(prompt)
                 st.write(resultado)
             except Exception as e:
-                st.error(f"El servicio está congestionado momentáneamente. Por favor reintenta en unos segundos. Detalle: {e}")
+                st.error(f"Ocurrió un detalle con la API: {e}")
 
 with tab2:
     st.header("Revisar División con Foto")
@@ -62,4 +66,4 @@ with tab2:
                     resultado = generar_con_respaldo([imagen, prompt_vision])
                     st.write(resultado)
                 except Exception as e:
-                    st.error(f"El servicio está congestionado momentáneamente. Por favor reintenta en unos segundos. Detalle: {e}")
+                    st.error(f"Ocurrió un detalle con la API: {e}")
